@@ -192,7 +192,7 @@ class TestMain:
     ):
         """Test video export handles None frames gracefully."""
         mock_ale_env.return_value = mock_env
-        mock_env._env.render.return_value = None  # No frame available
+        mock_env.render_rgb.return_value = None  # No frame available
 
         run_file = tmp_path / "run.json"
         run_file.write_text(json.dumps(sample_run_data))
@@ -201,13 +201,11 @@ class TestMain:
         mock_env.step.return_value = step_result
 
         with patch("sys.argv", ["export_video.py", "--run", str(run_file)]):
-            main()
+            with pytest.raises(RuntimeError, match="No frames captured"):
+                main()
 
-        # Should still call imwrite even with empty frames list
-        mock_imwrite.assert_called_once()
-        call_args = mock_imwrite.call_args
-        frames = call_args[0][1]
-        assert frames == []
+        # Should not call imwrite if no frames were captured
+        mock_imwrite.assert_not_called()
 
     @patch("replay.export_video.iio.imwrite")
     @patch("replay.export_video.ALEEnv")

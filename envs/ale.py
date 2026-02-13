@@ -56,6 +56,13 @@ class ALEEnv:
     def close(self) -> None:
         self._env.close()
 
+    def render_rgb(self):
+        """
+        Return an RGB frame when render_mode='rgb_array'.
+        Gymnasium env.render() returns an ndarray in that mode.
+        """
+        return self._env.render()
+
     @property
     def action_space_n(self) -> int:
         space = self._env.action_space
