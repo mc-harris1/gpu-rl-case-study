@@ -18,10 +18,14 @@ def mock_env():
 def sample_run_data():
     return {
         "spec": {
+            "env_key": "pacman",
             "env_id": "ALE/Pong-v5",
+            "obs_type": "pixels",
             "seed": 42,
+            "policy": "sticky_dir",
             "frameskip": 4,
             "repeat_action_probability": 0.0,
+            "single_episode": False,
         },
         "actions": [0, 1, 2],
         "total_reward": 5.0,
@@ -112,7 +116,8 @@ def test_main_hash_mismatch(mock_obs_hash, mock_ale_env, tmp_path, sample_run_da
 @patch("replay.replay.obs_hash")
 def test_main_reset_on_done(mock_obs_hash, mock_ale_env, tmp_path, sample_run_data, mock_env):
     mock_ale_env.return_value = mock_env
-    mock_obs_hash.side_effect = ["hash0", "hash1", "hash2", "abc123"]
+    # Need more hashes: initial obs + 3 steps (one with done, which adds extra hash after reset)
+    mock_obs_hash.side_effect = ["hash0", "hash1", "hash_after_reset", "hash2", "abc123"]
 
     run_file = tmp_path / "run.json"
     run_file.write_text(json.dumps(sample_run_data))

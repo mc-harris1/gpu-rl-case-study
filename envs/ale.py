@@ -3,11 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Tuple
 
+import ale_py
 import gymnasium as gym
 import numpy as np
 from gymnasium.spaces import Discrete
 
 from envs.base import StepResult
+
+# Register ALE environments with gymnasium
+gym.register_envs(ale_py)
 
 
 @dataclass
@@ -58,3 +62,12 @@ class ALEEnv:
         if isinstance(space, Discrete):
             return int(space.n)
         raise TypeError(f"Expected Discrete action space, got {type(space)}: {space}")
+
+    @property
+    def action_meanings(self) -> list[str]:
+        # Gymnasium ALE exposes action meanings via the unwrapped env
+        try:
+            return list(self._env.unwrapped.get_action_meanings())
+        except Exception:
+            # Fallback if unavailable
+            return [str(i) for i in range(self.action_space_n)]

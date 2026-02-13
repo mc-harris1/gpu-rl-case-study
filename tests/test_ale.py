@@ -151,3 +151,30 @@ def test_action_space_n_non_discrete(ale_env):
 
     with pytest.raises(TypeError, match="Expected Discrete action space"):
         _ = ale_env.action_space_n
+
+
+def test_action_meanings(ale_env):
+    """Test action_meanings property."""
+    mock_unwrapped = Mock()
+    mock_unwrapped.get_action_meanings.return_value = ["NOOP", "FIRE", "RIGHT", "LEFT"]
+    ale_env._env.unwrapped = mock_unwrapped
+
+    meanings = ale_env.action_meanings
+
+    assert isinstance(meanings, list)
+    assert meanings == ["NOOP", "FIRE", "RIGHT", "LEFT"]
+    mock_unwrapped.get_action_meanings.assert_called_once()
+
+
+def test_action_meanings_fallback(ale_env):
+    """Test action_meanings fallback when unavailable."""
+    from gymnasium.spaces import Discrete
+
+    ale_env._env.action_space = Discrete(6)
+    ale_env._env.unwrapped = Mock()
+    ale_env._env.unwrapped.get_action_meanings.side_effect = Exception("Not supported")
+
+    meanings = ale_env.action_meanings
+
+    assert isinstance(meanings, list)
+    assert meanings == ["0", "1", "2", "3", "4", "5"]
